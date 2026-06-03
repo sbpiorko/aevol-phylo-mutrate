@@ -1,0 +1,265 @@
+Mutation-rate sensitivity of phylogenomic tree reconstruction using Aevol 4b simulated genomes
+
+Pilot benchmark report for aevol_phylo_mutrate, rep_001
+
+
+Abstract
+
+Phylogenomic methods are often evaluated on empirical genomes, but empirical datasets rarely provide a known true evolutionary tree. This pilot benchmark tested how increasing local sequence-level mutation rate affected recovery of a known 16-tip simulated species tree from Aevol 4b genomes. Five mutation-rate regimes were simulated from a shared Aevol setup: very_low, low, normal, high, and very_high. Only point mutation, small insertion, and small deletion rates were scaled; larger rearrangement-rate parameters were held at the baseline values. Final FASTA files were collected, cleaned, quality checked, and analyzed with three phylogenomic workflows: Mash/BioNJ, MAFFT/IQ-TREE, and Mauve/IQ-TREE. Inferred trees were scored against the known topology using Robinson-Foulds distance.
+
+In rep_001, all successful methods recovered the true topology at very_low and low mutation rates. Mash/BioNJ began to degrade at normal mutation rate and worsened through high and very_high. MAFFT/IQ-TREE performed best overall in this pilot replicate, recovering the true tree through normal and retaining lower topological error than Mash/BioNJ at high and very_high. Mauve/IQ-TREE recovered the tree accurately through normal but did not produce scored trees at high or very_high under the strict shared-core alignment rule. These pilot results suggest that increasing local mutation pressure reduces tree recoverability in a method-dependent way and support expanding the benchmark to additional replicates.
+
+
+1. Introduction
+
+1.1 Background: simulated phylogenomics
+
+Phylogenomic methods infer evolutionary relationships from genomic sequence data, but measuring their accuracy is difficult when the true history is unknown. Simulated datasets address this problem by providing an explicit ground-truth tree. In such a setting, inferred trees can be evaluated directly against the known simulated topology rather than only compared to other inferred trees or to uncertain empirical expectations.
+
+Aevol 4b is useful for this kind of benchmark because it sits between artificial-life simulation and bioinformatics. The Aevol documentation describes Aevol as a forward-in-time evolutionary simulator in which populations evolve through variation and selection. Mutations are applied to genome sequence first, and their fitness consequences are evaluated afterward through the genotype-to-phenotype-to-fitness model. The 4-Bases flavor uses ATGC-encoded genomes rather than the binary genomes used by Standard Aevol, which makes the final genomes compatible with ordinary sequence-processing and phylogenomic tools.
+
+Aevol 4b is not being used here because it perfectly mimics real genomes. It is being used because it generates ATGC-encoded simulated genomes under a known evolutionary process, allowing tree-reconstruction workflows to be tested against a known answer.
+
+1.2 Project gap and central question
+
+The published Aevol 4b work provides background and motivation for using Aevol 4b genomes with standard bioinformatics tools. The present project is not a reproduction of that paper. Instead, it is a smaller independent pilot benchmark inspired by the same general logic: simulate evolution under a known history, extract final genomes, infer trees with off-the-shelf tools, and compare inferred trees with the known tree.
+
+The central question was:
+
+How does increasing local sequence-level mutation rate affect the ability of different phylogenomic workflows to recover a known simulated 16-tip species tree from Aevol 4b genomes?
+
+This is a clean benchmarking question because mutation rate can affect several quantities relevant to tree recovery, including the number of informative sites, sequence divergence, homoplasy or saturation-like effects, indel burden, alignment quality, genome length, and the amount of recoverable conserved or core sequence.
+
+1.3 Aims and hypotheses
+
+Aim 1. Generate comparable Aevol 4b final genomes across five local mutation-rate regimes.
+
+Aim 2. Infer trees from the final genomes using three distinct phylogenomic strategies.
+
+Aim 3. Quantify tree-reconstruction error relative to the known simulated species tree.
+
+The working hypotheses were that low mutation rates would be easier or at least less divergent, moderate mutation rates might provide useful signal without excessive disruption, and high or very_high mutation rates would reduce tree recovery through degraded similarity, indel accumulation, genome shortening, or alignment/core-alignment failure. A final hypothesis was that different methods would fail differently because they extract evolutionary signal in different ways.
+
+
+2. Materials and Methods
+
+2.1 Computational workflow and file organization
+
+The project was organized as a reproducible workflow in the directory aevol_phylo_mutrate. Configuration, scripts, input data, simulation runs, and results were separated into dedicated folders. The analysis used one shared pre-evolved ancestor, one known balanced 16-tip species tree, five mutation-rate regimes, and one completed replicate so far, rep_001.
+
+Key project components:
+
+Component                         Path                                           Purpose
+Mutation grid                     config/mutation_grid.yaml                      Defines mutation-rate multipliers
+Resolved mutation parameters       data/manifests/mutation_params_resolved.tsv    Records scaled parameter values
+True tree                         data/true_trees/true_tree_16tips.nwk           Known topology used for scoring
+Raw FASTAs                        data/raw_final_fastas/                         Frozen simulation outputs
+Clean FASTAs                      data/clean_fastas/                             Standardized phylogeny inputs
+Phylogeny outputs                 results/phylo/                                 Method-specific inferred trees
+Tree scores                       results/tree_scores/                           RF, validation, split, and patristic outputs
+Plots                             results/plots/                                 Summary visualizations
+Software audit                    results/software_versions/phylo_tools.tsv      Tool and package versions
+
+The main workflow scripts were numbered in execution order, beginning with true-tree generation and mutation-parameter generation and ending with phylogenetic inference, tree scoring, and plotting.
+
+2.2 Aevol 4b simulation framework
+
+Simulations were performed using Aevol 4b, the four-base version of Aevol. Aevol models genome evolution through replication, mutation, genotype-to-phenotype decoding, and fitness-based competition. Unlike simulators that directly assign a fitness coefficient to each mutation, Aevol applies mutations to the genome and evaluates their effects through the resulting phenotype and fitness.
+
+The local documentation describes 4-Bases Aevol as using ATGC sequence rather than binary sequence. It also describes mutation rates as per-base, per-replication probabilities, with local mutations including substitutions, small insertions, and small deletions, and larger chromosomal rearrangements including inversions, translocations, duplications, and deletions. This distinction mattered for the present design because only local mutation-rate parameters were scaled.
+
+2.3 Experimental design
+
+The project used a shared pre-evolved ancestor, a fixed balanced 16-tip true species tree, five mutation-rate regimes, and one completed replicate, rep_001. The final terminal genomes were extracted for tips S01 through S16. The configuration used 100,000 ancestor generations and 10,000 generations per species-tree branch.
+
+Mutation-rate regimes:
+
+Condition       Multiplier     Parameters scaled
+very_low        0.0625x        POINT_MUTATION_RATE, SMALL_INSERTION_RATE, SMALL_DELETION_RATE
+low             0.25x          POINT_MUTATION_RATE, SMALL_INSERTION_RATE, SMALL_DELETION_RATE
+normal          1.0x           POINT_MUTATION_RATE, SMALL_INSERTION_RATE, SMALL_DELETION_RATE
+high            4.0x           POINT_MUTATION_RATE, SMALL_INSERTION_RATE, SMALL_DELETION_RATE
+very_high       16.0x          POINT_MUTATION_RATE, SMALL_INSERTION_RATE, SMALL_DELETION_RATE
+
+The baseline value for each scaled local mutation parameter was 5e-5. The resolved values ranged from 3.125e-06 in very_low to 0.0008 in very_high. Larger rearrangement parameters, including DUPLICATION_RATE, DELETION_RATE, TRANSLOCATION_RATE, and INVERSION_RATE, were left unchanged from the baseline parameter file at 5e-5. This design isolates the effect of local sequence-level mutation pressure while holding the larger rearrangement-rate settings constant.
+
+2.4 True tree generation
+
+A balanced 16-tip species tree was generated and used as the ground-truth topology for all mutation-rate regimes. The 16 terminal tips were labeled S01 through S16. The tree manifest contained 30 branches/edges, as expected for the configured fully bifurcating 16-tip tree with 15 internal nodes. Using the same topology across conditions ensured that differences in tree-reconstruction accuracy could be interpreted relative to mutation-rate treatment rather than tree-shape differences.
+
+2.5 FASTA extraction, cleaning, and QC
+
+Final Aevol FASTA files were collected for each terminal tip. Raw final FASTA outputs were frozen under data/raw_final_fastas/. Cleaned phylogeny inputs were then generated under data/clean_fastas/ with standardized tip headers S01 through S16. Each condition produced all_tips.clean.fa and sample_manifest.tsv.
+
+The QC workflow checked record counts, FASTA validity, duplicate IDs, duplicate sequences, invalid records, and genome length summaries. All five conditions passed these integrity checks.
+
+FASTA QC summary:
+
+Condition       Records     Min length     Max length     Mean length     Status
+very_low        16          2869           3107           2969.19         ok
+low             16          2830           3113           2975.94         ok
+normal          16          2798           2963           2900.62         ok
+high            16          1993           2585           2281.00         ok
+very_high       16           640           1044            813.81         ok
+
+Although all conditions passed FASTA integrity checks, genome length distributions differed strongly across mutation-rate regimes. In this pilot replicate, high and especially very_high mutation-rate treatments were associated with substantially shorter final genomes. This length shift is biologically and computationally relevant because downstream phylogenetic methods depend on recoverable sequence similarity, shared alignment positions, or genome-wide distance signal.
+
+2.6 Software environment
+
+Tool checking was performed in WSL/Ubuntu and recorded in results/software_versions/phylo_tools.tsv. Major tools included Python 3.12.3, R 4.3.3, seqkit v2.3.0, Mash 2.3, MAFFT v7.505, IQ-TREE 2.0.7, progressiveMauve, and optional nucmer/dnadiff. Python packages included Biopython 1.87, pandas 3.0.3, and ete3 3.1.3. R packages included ape 5.7.1, phangorn 2.11.1, tidyverse 2.0.0, and dendextend 1.17.1. fastme was not available, so the Mash distance workflow used R ape::bionj() for tree inference.
+
+2.7 Phylogenetic inference workflows
+
+Three implemented workflows were evaluated.
+
+Mash/BioNJ represented an alignment-free distance-based strategy. Mash was used to estimate pairwise genomic distances from cleaned FASTA inputs. Mash output was converted into a square distance matrix, and R ape::bionj() was used to infer a tree. This workflow is conceptually similar to a k-mer/BioNJ approach, but this project specifically implemented Mash plus BioNJ.
+
+MAFFT/IQ-TREE represented a conventional alignment-based maximum-likelihood strategy. MAFFT aligned all 16 cleaned tip genomes, alignment statistics were summarized, and IQ-TREE inferred a maximum-likelihood topology under model selection. MAFFT was used here as a full-sequence multiple alignment baseline; it should not be interpreted as a rearrangement-aware whole-genome aligner.
+
+Mauve/IQ-TREE represented a whole-genome alignment strategy. The combined FASTA was split into individual genome FASTAs, progressiveMauve aligned the genomes, XMFA output was converted into a strict shared core alignment across all expected tips, and IQ-TREE was run when the core alignment was usable. The high and very_high Mauve/IQ-TREE conditions were tested, but they are reported as workflow failures under the strict core-alignment rule because the recovered core left many tips represented only by gaps.
+
+2.8 Tree validation and scoring
+
+Inferred trees were scored against data/true_trees/true_tree_16tips.nwk using scripts/12_score_trees.py. The scorer checked whether each inferred tree existed, whether it contained the expected 16 tips, whether tip labels matched the true tree, branch counts, negative branch lengths, matching/missing/extra unrooted splits, Robinson-Foulds distance, normalized Robinson-Foulds distance, and patristic distance correlation when branch lengths were usable.
+
+Robinson-Foulds distance was treated as the primary accuracy metric because the true tree provided a known topology. Patristic distance correlations were calculated as secondary diagnostics, but interpreted cautiously because inferred branch lengths are method-specific and the simulated true tree used equal branch lengths.
+
+
+3. Results
+
+3.1 Simulation and FASTA generation
+
+Aevol produced final genomes for all five mutation-rate regimes in rep_001. Each condition contained 16 final tip genomes, S01 through S16, and a combined all_tips.fa file. Raw outputs were frozen, cleaned FASTA inputs were generated, and all conditions passed FASTA integrity checks.
+
+3.2 Genome length differed by mutation-rate regime
+
+Genome lengths were similar in very_low, low, and normal, with mean lengths around 2.9 to 3.0 kb. The high condition had a lower mean length of 2281.00 bp, and very_high had a much lower mean length of 813.81 bp. Thus, in this pilot replicate, increasing local mutation-rate treatment was associated not only with higher sequence divergence but also with shorter recovered final genomes.
+
+Figure 1 should use:
+results/plots/genome_lengths_by_condition.svg
+
+This pattern matters because tree inference may be affected by substitutional divergence, indel accumulation, genome shortening, and reduced shared comparable sequence.
+
+3.3 Tree recovery varied by method and mutation rate
+
+The main result was a method-dependent increase in tree-reconstruction error as mutation rate increased.
+
+Robinson-Foulds scoring summary:
+
+Method             very_low     low       normal     high       very_high
+Mash/BioNJ         0.000        0.000     0.385      0.615      0.769
+MAFFT/IQ-TREE      0.000        0.000     0.000      0.154      0.462
+Mauve/IQ-TREE      0.000        0.000     0.077      missing    missing
+
+Figure 2 should use:
+results/plots/normalized_rf_by_condition_method.svg
+
+All successful methods recovered the true topology perfectly at very_low and low. MAFFT/IQ-TREE performed best overall in rep_001, with perfect recovery through normal and lower error at high and very_high than Mash/BioNJ. Mash/BioNJ degraded substantially from normal upward. Mauve/IQ-TREE was accurate through normal but did not yield scored trees at high or very_high under the strict core-alignment workflow.
+
+3.4 Method-specific outcomes
+
+Mash/BioNJ recovered the true tree at very_low and low but showed increasing topological error from normal through very_high. Normalized RF increased from 0.385 at normal to 0.615 at high and 0.769 at very_high. This suggests that the sketch-based genome-distance signal became less reliable as mutation pressure increased in this dataset. Possible contributors include high divergence, genome shortening, reduced shared k-mer content, and less tree-like distance structure.
+
+MAFFT/IQ-TREE showed the strongest recovery in this pilot. It recovered the true topology at very_low, low, and normal, then showed moderate error at high and stronger error at very_high. This may indicate that alignment plus maximum-likelihood inference preserved useful character-level signal longer than the distance-based approach in rep_001. This should not be generalized as universal method superiority until additional replicates are run.
+
+Mauve/IQ-TREE recovered the tree at very_low and low and was close to the true topology at normal, with normalized RF 0.077. At high and very_high, progressiveMauve ran, but strict core-alignment extraction became unusable because many tips were represented only by gaps in the recovered core alignment. This is a meaningful workflow result rather than an untested condition. It reflects the combination of high-divergence data and the strict shared-core extraction rule used here, not a general failure of progressiveMauve in all settings.
+
+Workflow outcome matrix:
+
+Method             very_low     low        normal             high                  very_high
+Mash/BioNJ         perfect      perfect    scored with error  scored with error     scored with error
+MAFFT/IQ-TREE      perfect      perfect    perfect            scored with error     scored with error
+Mauve/IQ-TREE      perfect      perfect    scored with error  failed to score       failed to score
+
+3.5 Patristic correlations as secondary diagnostics
+
+Patristic correlations were retained as secondary diagnostics rather than primary conclusions. RF distance was prioritized because the central benchmark question was topological recovery of a known tree.
+
+Patristic correlation summary:
+
+Method             very_low     low        normal     high       very_high
+Mash/BioNJ         0.965010     0.972010   0.518204   skipped    0.851154
+MAFFT/IQ-TREE      0.925401     0.970736   0.152718   0.787141   0.821228
+Mauve/IQ-TREE      0.974924     0.984223   0.935804   missing    missing
+
+The low MAFFT/IQ-TREE patristic correlation at normal despite perfect RF recovery illustrates why branch-distance diagnostics should be treated cautiously in this pilot. The true tree uses equal simulated branch lengths, while inferred branch lengths come from different distance and likelihood procedures.
+
+
+4. Discussion
+
+4.1 Main interpretation
+
+In this pilot benchmark, increasing local sequence-level mutation rate reduced phylogenetic recoverability, but the effect depended strongly on the inference workflow. At very_low and low mutation rates, all successful workflows recovered the known topology. At normal mutation rate, Mash/BioNJ began to show error while MAFFT/IQ-TREE remained perfect and Mauve/IQ-TREE was nearly perfect. At high and very_high mutation rates, all workflows were stressed, but they failed in different ways.
+
+4.2 Why methods differed
+
+The workflows use different forms of evolutionary signal. Mash/BioNJ depends on genome-wide k-mer/sketch distance signal. MAFFT/IQ-TREE depends on recoverable homologous positions in a multiple sequence alignment and a model-based tree search. Mauve/IQ-TREE depends on recoverable shared genome blocks and a strict core alignment across all tips.
+
+As mutation rate increased, the problem was not simply "more differences." The higher mutation-rate regimes also changed genome length and apparently reduced the amount of comparable sequence available to some workflows. In the very_high treatment, genomes were only 640 to 1044 bp long, far shorter than the roughly 2.8 to 3.1 kb genomes in the lower-rate treatments. This likely contributed to the strong stress placed on both distance and alignment-based approaches.
+
+4.3 Relationship to the Aevol 4b paper
+
+This project follows the general benchmark logic introduced by the Aevol 4b work: simulate evolution under a known history, extract final genomes, analyze them with standard bioinformatics tools, and compare inferred trees to the true tree. However, the present study is not a reproduction of the published Aevol 4b benchmark. It uses a smaller 16-tip balanced tree, five local mutation-rate regimes, one replicate so far, and a distinct implemented method set including Mash/BioNJ and MAFFT/IQ-TREE.
+
+The Aevol 4b paper and documentation mainly support why Aevol 4b is appropriate for this project: it produces ATGC-encoded simulated genomes that can be analyzed with standard bioinformatics tools while still evolving through a genotype-to-phenotype-to-fitness model. The distinct contribution here is the five-condition mutation-rate stress test implemented in a reproducible project pipeline.
+
+4.4 Limitations
+
+This report should be interpreted as a pilot benchmark, not a final statistical study. The main limitation is that only one replicate, rep_001, has been completed. Additional replicates are needed before estimating method means, variation, or confidence in trends.
+
+The genomes are short, especially in the very_high treatment. The balanced 16-tip tree is controlled and easy to interpret, but it may not capture the difficulty of more irregular evolutionary histories. The branch design is equal across the tree, which simplifies scoring but does not represent heterogeneous evolutionary rates or branch durations. The design scaled only local mutation rates; rearrangement rates were intentionally held constant, so this benchmark does not test rearrangement-rate effects.
+
+The Mauve/IQ-TREE high-divergence failures partly reflect the strict core-alignment extraction rule used in this pipeline. A less strict rule or a different whole-genome alignment strategy might return trees under those conditions. Finally, patristic correlations should remain secondary because branch lengths are not directly comparable across all workflows and scoring conditions.
+
+4.5 Future work
+
+The next step is to add rep_002 and rep_003 using the same design. With additional replicates, the project can report mean normalized RF distance by condition and method, replicate-level variation, and method failure rate as its own outcome. The plotting workflow should include replicate-level points and error bars once enough replicates exist.
+
+Future diagnostics should include alignment length, percent gaps, variable sites, parsimony-informative sites, missing/core alignment fraction, and perhaps runtime. The Mauve workflow should be evaluated with either a relaxed core-alignment criterion or a second whole-genome alignment strategy. Optional MUMmer/dnadiff-based distance trees could provide another comparison between pure k-mer distance and full multiple alignment.
+
+
+5. Conclusion
+
+This pilot benchmark demonstrates that Aevol 4b can be used to generate controlled, bioinformatics-compatible simulated genomes for testing phylogenomic inference workflows. Across five local mutation-rate regimes, tree recovery was perfect at low mutation rates but degraded at higher rates in a method-dependent manner. MAFFT/IQ-TREE showed the strongest performance in rep_001, Mash/BioNJ degraded progressively from normal to very_high mutation rates, and Mauve/IQ-TREE became limited by strict core-alignment recovery at high divergence. These results support expanding the benchmark to additional replicates and reporting both reconstruction accuracy and workflow failure rates as outcomes.
+
+
+References and local source files
+
+Daudey, H., Parsons, D. P., Tannier, E., Daubin, V., Boussau, B., Liard, V., Galle, R., Rouzaud-Cornabas, J., and Beslon, G. 2024. Aevol_4b: Bridging the gap between artificial life and bioinformatics. Proceedings of the 2024 Artificial Life Conference.
+
+Liard, V., Rouzaud-Cornabas, J., Comte, N., and Beslon, G. 2017. A 4-base model for the Aevol in-silico experimental evolution platform. Proceedings of ECAL 2017.
+
+Local documentation consulted:
+Documentation/Aevol_Overview.txt
+Documentation/Aevol_Documentation.txt
+Documentation/Codex_Export.txt
+Documentation/ChatGPT_Export_PhyloSteps.txt
+
+Project files used for results:
+aevol_phylo_mutrate/Codex_OverviewExport.txt
+aevol_phylo_mutrate/config/mutation_grid.yaml
+aevol_phylo_mutrate/config/run_config.yaml
+aevol_phylo_mutrate/config/phylo_methods.yaml
+aevol_phylo_mutrate/data/manifests/mutation_params_resolved.tsv
+aevol_phylo_mutrate/data/manifests/tree_edges.tsv
+aevol_phylo_mutrate/results/simulation_qc/phylo_input_qc.tsv
+aevol_phylo_mutrate/results/software_versions/phylo_tools.tsv
+aevol_phylo_mutrate/results/tree_scores/tree_scores.tsv
+aevol_phylo_mutrate/results/tree_scores/tree_validation.tsv
+aevol_phylo_mutrate/results/tree_scores/patristic_correlations.tsv
+aevol_phylo_mutrate/results/phylo/mauve_iqtree/mauve_iqtree_status.tsv
+
+
+Suggested figure files for a formatted version
+
+Figure 1. Genome length distribution across mutation-rate regimes:
+results/plots/genome_lengths_by_condition.svg
+
+Figure 2. Normalized Robinson-Foulds distance by mutation-rate condition and method:
+results/plots/normalized_rf_by_condition_method.svg
+
+Figure 3. Patristic correlation by mutation-rate condition and method:
+results/plots/patristic_correlation_by_condition_method.svg
+
+Figure 4. Workflow outcome matrix:
+This can be generated from results/tree_scores/tree_validation.tsv and results/phylo/mauve_iqtree/mauve_iqtree_status.tsv.

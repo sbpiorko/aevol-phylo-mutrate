@@ -1,0 +1,58 @@
+# Software targets for the phylogeny-analysis phase.
+#
+# This file is documentation for the setup scripts, not a package-lock file.
+# The Ubuntu installer in scripts/06_install_phylo_tools_ubuntu.sh installs
+# distro packages when available and falls back to Python/R package installers
+# only where that is more reliable.
+
+system_packages:
+  required:
+    - build-essential
+    - ca-certificates
+    - curl
+    - wget
+    - python3
+    - python3-pip
+    - python3-venv
+    - r-base
+    - r-base-dev
+  bioinformatics:
+    - seqkit
+    - mash
+    - fastme
+    - mafft
+    - iqtree
+  whole_genome_alignment:
+    - progressivemauve
+  optional:
+    - mummer
+
+python_packages:
+  required:
+    - biopython
+    - pandas
+  optional:
+    - ete3
+
+r_packages:
+  required:
+    - ape
+    - phangorn
+    - tidyverse
+  optional:
+    - dendextend
+
+commands_checked:
+  required:
+    - seqkit
+    - mash
+    - fastme
+    - mafft
+    - iqtree_or_iqtree2
+    - python3
+    - Rscript
+  planned_method_c:
+    - progressiveMauve
+  optional_method_d:
+    - nucmer
+    - dnadiff

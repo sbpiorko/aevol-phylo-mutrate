@@ -1,0 +1,81 @@
+# Phylogeny-analysis method configuration.
+#
+# This file describes the planned benchmark methods and shared input/output
+# layout. The scripts in this phase should treat data/raw_final_fastas as
+# immutable and write standardized inputs to data/clean_fastas.
+
+conditions:
+  - very_low
+  - low
+  - normal
+  - high
+  - very_high
+
+replicates:
+  - rep_001
+
+inputs:
+  raw_fasta_pattern: data/raw_final_fastas/{condition}/{replicate}/all_tips.fa
+  clean_fasta_pattern: data/clean_fastas/{condition}/{replicate}/all_tips.clean.fa
+  sample_manifest_pattern: data/clean_fastas/{condition}/{replicate}/sample_manifest.tsv
+  true_tree: data/true_trees/true_tree_16tips.nwk
+  expected_tips: 16
+  tip_pattern: S{number:02d}
+
+outputs:
+  phylo_root: results/phylo
+  tree_scores: results/tree_scores
+  plots: results/plots
+  logs: results/logs
+
+methods:
+  mash_bionj:
+    enabled: true
+    description: Alignment-free k-mer distance tree using Mash distances and R ape::bionj().
+    input: clean_fasta
+    tools:
+      - mash
+      - Rscript
+      - ape
+    output_pattern: results/phylo/mash_bionj/{condition}/{replicate}/inferred_tree.nwk
+    parameters:
+      sketch_k: 21
+      sketch_size: 10000
+      tree_builder: ape_bionj
+
+  mafft_iqtree:
+    enabled: true
+    description: Whole-sequence multiple alignment with MAFFT followed by IQ-TREE2.
+    input: clean_fasta
+    tools:
+      - mafft
+      - iqtree2
+    output_pattern: results/phylo/mafft_iqtree/{condition}/{replicate}/inferred_tree.nwk
+    parameters:
+      mafft_mode: auto
+      iqtree_model: MFP
+
+  mauve_iqtree:
+    enabled: true
+    description: Whole-genome alignment with progressiveMauve followed by IQ-TREE2.
+    input: split_clean_fastas
+    tools:
+      - progressiveMauve
+      - iqtree2
+    output_pattern: results/phylo/mauve_iqtree/{condition}/{replicate}/inferred_tree.nwk
+    parameters:
+      core_alignment_only: true
+      iqtree_model: MFP
+
+  mummer_distance:
+    enabled: false
+    description: Optional pairwise genome-alignment distance tree using MUMmer/dnadiff and R ape::bionj().
+    input: split_clean_fastas
+    tools:
+      - nucmer
+      - dnadiff
+      - Rscript
+      - ape
+    output_pattern: results/phylo/mummer_distance/{condition}/{replicate}/inferred_tree.nwk
+    parameters:
+      tree_builder: ape_bionj

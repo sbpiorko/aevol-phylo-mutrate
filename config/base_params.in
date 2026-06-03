@@ -1,0 +1,52 @@
+###################################
+#         AEVOL PARAMETERS        #
+###################################
+#
+# Baseline Aevol 4b parameter file for the mutation-rate simulation scaffold.
+# The pipeline generates condition-specific copies that scale only:
+#
+#   POINT_MUTATION_RATE
+#   SMALL_INSERTION_RATE
+#   SMALL_DELETION_RATE
+
+########## Size of the initial random chromosome to generate ##########
+CHROMOSOME_INITIAL_LENGTH   5000
+
+########## Random generator setup (patched by scripts) ##########
+SEED    5000
+
+########## Population Structure and Selection ##########
+GRID_SIZE           32 32
+SELECTION_SCOPE     local 3 3
+SELECTION_SCHEME    fitness_proportionate   1000
+
+########## Mutation rates ##########
+POINT_MUTATION_RATE     5e-5
+SMALL_INSERTION_RATE    5e-5
+SMALL_DELETION_RATE     5e-5
+MAX_INDEL_SIZE          6
+
+########## Rearrangement rates ##########
+DUPLICATION_RATE        5e-5
+DELETION_RATE           5e-5
+TRANSLOCATION_RATE      5e-5
+INVERSION_RATE          5e-5
+
+########## Genomic constraints ##########
+MIN_GENOME_LENGTH       1
+MAX_GENOME_LENGTH       10000000
+
+########## Phenotype ##########
+DOSAGE_EFFECT       absolute
+
+########## Target function ##########
+ENV_ADD_GAUSSIAN  1.2   0.52  0.12
+ENV_ADD_GAUSSIAN -1.4   0.5   0.07
+ENV_ADD_GAUSSIAN  0.3   0.8   0.03
+MAX_TRIANGLE_WIDTH      0.033333333
+
+########## Recording ##########
+CHECKPOINT_STEP 1000
+RECORD_TREE     ON 1000
+STATS_BEST      ON 100
+STATS_POP       ON 100

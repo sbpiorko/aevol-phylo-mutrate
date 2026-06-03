@@ -1,0 +1,14 @@
+method	condition	replicate	tree	status	patristic_correlation
+mash_bionj	very_low	rep_001	results/phylo/mash_bionj/very_low/rep_001/inferred_tree.nwk	ok	0.965010
+mash_bionj	low	rep_001	results/phylo/mash_bionj/low/rep_001/inferred_tree.nwk	ok	0.972010
+mash_bionj	normal	rep_001	results/phylo/mash_bionj/normal/rep_001/inferred_tree.nwk	ok	0.518204
+mash_bionj	high	rep_001	results/phylo/mash_bionj/high/rep_001/inferred_tree.nwk	skipped_negative_branch_lengths	
+mash_bionj	very_high	rep_001	results/phylo/mash_bionj/very_high/rep_001/inferred_tree.nwk	ok	0.851154
+mafft_iqtree	very_low	rep_001	results/phylo/mafft_iqtree/very_low/rep_001/inferred_tree.nwk	ok	0.925401
+mafft_iqtree	low	rep_001	results/phylo/mafft_iqtree/low/rep_001/inferred_tree.nwk	ok	0.970736
+mafft_iqtree	normal	rep_001	results/phylo/mafft_iqtree/normal/rep_001/inferred_tree.nwk	ok	0.152718
+mafft_iqtree	high	rep_001	results/phylo/mafft_iqtree/high/rep_001/inferred_tree.nwk	ok	0.787141
+mafft_iqtree	very_high	rep_001	results/phylo/mafft_iqtree/very_high/rep_001/inferred_tree.nwk	ok	0.821228
+mauve_iqtree	very_low	rep_001	results/phylo/mauve_iqtree/very_low/rep_001/inferred_tree.nwk	ok	0.974924
+mauve_iqtree	low	rep_001	results/phylo/mauve_iqtree/low/rep_001/inferred_tree.nwk	ok	0.984223
+mauve_iqtree	normal	rep_001	results/phylo/mauve_iqtree/normal/rep_001/inferred_tree.nwk	ok	0.935804

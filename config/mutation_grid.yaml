@@ -1,0 +1,7 @@
+# condition: multiplier
+very_low: 0.0625
+low: 0.25
+normal: 1.0
+high: 4.0
+very_high: 16.0
+

@@ -1,0 +1,16 @@
+condition	multiplier	parameter	base_value	scaled_value	params_file
+very_low	0.0625	POINT_MUTATION_RATE	5e-5	3.125e-06	config/generated_params/very_low_params.in
+very_low	0.0625	SMALL_INSERTION_RATE	5e-5	3.125e-06	config/generated_params/very_low_params.in
+very_low	0.0625	SMALL_DELETION_RATE	5e-5	3.125e-06	config/generated_params/very_low_params.in
+low	0.25	POINT_MUTATION_RATE	5e-5	1.25e-05	config/generated_params/low_params.in
+low	0.25	SMALL_INSERTION_RATE	5e-5	1.25e-05	config/generated_params/low_params.in
+low	0.25	SMALL_DELETION_RATE	5e-5	1.25e-05	config/generated_params/low_params.in
+normal	1.0	POINT_MUTATION_RATE	5e-5	5e-05	config/generated_params/normal_params.in
+normal	1.0	SMALL_INSERTION_RATE	5e-5	5e-05	config/generated_params/normal_params.in
+normal	1.0	SMALL_DELETION_RATE	5e-5	5e-05	config/generated_params/normal_params.in
+high	4.0	POINT_MUTATION_RATE	5e-5	0.0002	config/generated_params/high_params.in
+high	4.0	SMALL_INSERTION_RATE	5e-5	0.0002	config/generated_params/high_params.in
+high	4.0	SMALL_DELETION_RATE	5e-5	0.0002	config/generated_params/high_params.in
+very_high	16.0	POINT_MUTATION_RATE	5e-5	0.0008	config/generated_params/very_high_params.in
+very_high	16.0	SMALL_INSERTION_RATE	5e-5	0.0008	config/generated_params/very_high_params.in
+very_high	16.0	SMALL_DELETION_RATE	5e-5	0.0008	config/generated_params/very_high_params.in

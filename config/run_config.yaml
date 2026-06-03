@@ -1,0 +1,24 @@
+# Core simulation settings.
+ancestor_generations: 100000
+branch_generations: 10000
+tips: 16
+replicates: 1
+threads: 14
+
+# Seeds are patched into params.in before each Aevol create call.
+root_seed: 1001
+seed_base: 100000
+
+# Project-relative paths.
+base_params: config/base_params.in
+generated_params_dir: config/generated_params
+true_tree: data/true_trees/true_tree_16tips.nwk
+tree_edges: data/manifests/tree_edges.tsv
+
+# Aevol executable candidates. The scripts use the first name found on PATH.
+# Current Aevol documentation uses aevol_4b_create / aevol_4b_run, while some
+# builds or notes may use aevol_create_4b / aevol_run_4b.
+aevol_create_candidates: aevol_4b_create,aevol_create_4b
+aevol_run_candidates: aevol_4b_run,aevol_run_4b
+aevol_extract_candidates: aevol_4b_misc_extract,aevol_misc_extract,aevol_post_extract_genomes_4b,aevol_4b_post_extract_genomes
+

@@ -1,0 +1,5 @@
+key	value
+generations	100000
+seed	1001
+params	runs/ancestor/params.in
+fasta	data/ancestor/ancestor_best.fa

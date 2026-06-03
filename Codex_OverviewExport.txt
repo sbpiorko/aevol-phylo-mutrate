@@ -1,0 +1,413 @@
+Codex Overview Export
+Project: Aevol mutation-rate phylogenomics benchmark
+Location: C:\Users\Fiend\Documents\Projects\Aevol\aevol_phylo_mutrate
+Last summarized: 2026-05-18
+
+PROJECT QUESTION
+How does mutation rate affect the ability of different phylogenomic methods to recover a known evolutionary tree from Aevol 4b genomes?
+
+The project uses Aevol 4b to simulate ATGC genomes under an explicit evolutionary model, then tests whether phylogenomic methods can recover the known simulated 16-tip species tree. The initial simulation phase produced final tip FASTA files. The next analysis phase prepared those FASTAs for phylogenetic inference, inferred trees with several methods, and scored inferred trees against the known true tree.
+
+
+HIGH-LEVEL WORKFLOW THAT WAS BUILT
+
+1. Simulation scaffold
+   The project scaffold was built under aevol_phylo_mutrate with separate config, script, data, run, and results folders. The scaffold supports:
+
+   - one shared pre-evolved ancestor
+   - one known balanced 16-tip species tree
+   - five mutation-rate regimes
+   - one replicate so far: rep_001
+   - collection of one final FASTA per species tip
+   - QC of final FASTA files
+
+2. Mutation-rate regimes
+   Five local sequence-level mutation-rate regimes were defined:
+
+   - very_low: 0.0625x baseline
+   - low: 0.25x baseline
+   - normal: 1.0x baseline
+   - high: 4.0x baseline
+   - very_high: 16.0x baseline
+
+   Only these Aevol parameters were scaled:
+
+   - POINT_MUTATION_RATE
+   - SMALL_INSERTION_RATE
+   - SMALL_DELETION_RATE
+
+   Large rearrangement parameters were left unchanged from the baseline parameter file.
+
+   The resolved parameter table is:
+
+   - data/manifests/mutation_params_resolved.tsv
+
+3. True species tree
+   A balanced 16-tip species tree was generated and used as the known ground truth for all mutation-rate regimes.
+
+   Important files:
+
+   - data/true_trees/true_tree_16tips.nwk
+   - data/manifests/tree_edges.tsv
+
+   The tree manifest contains 30 branches/edges, as expected for a fully bifurcating 16-tip tree with 15 internal nodes.
+
+4. Aevol simulation outputs
+   Aevol produced final genomes for all five mutation-rate regimes in rep_001. The final raw FASTA outputs were frozen as the raw input source for phylogenetic work.
+
+   Important folders:
+
+   - data/raw_final_fastas/very_low/rep_001/
+   - data/raw_final_fastas/low/rep_001/
+   - data/raw_final_fastas/normal/rep_001/
+   - data/raw_final_fastas/high/rep_001/
+   - data/raw_final_fastas/very_high/rep_001/
+
+   Each condition has:
+
+   - S01.fa through S16.fa
+   - all_tips.fa
+
+5. FASTA cleaning and phylogeny input preparation
+   The raw final FASTAs were cleaned into standardized phylogeny inputs with simple tip names S01 through S16.
+
+   Important folders:
+
+   - data/clean_fastas/very_low/rep_001/
+   - data/clean_fastas/low/rep_001/
+   - data/clean_fastas/normal/rep_001/
+   - data/clean_fastas/high/rep_001/
+   - data/clean_fastas/very_high/rep_001/
+
+   Each cleaned condition has:
+
+   - all_tips.clean.fa
+   - sample_manifest.tsv
+
+6. FASTA QC
+   The prepared phylogeny inputs were checked for:
+
+   - 16 records per condition
+   - valid FASTA records
+   - no duplicate IDs
+   - no duplicate sequences
+   - genome length summaries
+
+   QC output:
+
+   - results/simulation_qc/phylo_input_qc.tsv
+
+   QC summary:
+
+   condition    records    min_length    max_length    mean_length    status
+   very_low    16         2869          3107          2969.19        ok
+   low         16         2830          3113          2975.94        ok
+   normal      16         2798          2963          2900.62        ok
+   high        16         1993          2585          2281.00        ok
+   very_high   16          640          1044           813.81        ok
+
+   A clear trend is visible: genomes are much shorter in the high and very_high mutation-rate conditions.
+
+
+SOFTWARE ENVIRONMENT THAT WAS CHECKED
+
+Tool checking was done in WSL/Ubuntu. The software report is stored at:
+
+- results/software_versions/phylo_tools.tsv
+
+Important tools that were available:
+
+- python3: Python 3.12.3
+- Rscript: R 4.3.3
+- seqkit: v2.3.0
+- mash: 2.3
+- mafft: v7.505
+- iqtree2: IQ-TREE 2.0.7
+- progressiveMauve: available
+- nucmer/dnadiff: available as optional tools
+- Python packages: biopython, pandas, ete3
+- R packages: ape, phangorn, tidyverse, dendextend
+
+fastme was not available. The project proceeded without it by using R ape/BioNJ for the Mash distance trees.
+
+
+PHYLOGENETIC METHODS THAT WERE RUN
+
+Three main tree-building methods were implemented/tested for rep_001:
+
+1. mash_bionj
+   Workflow:
+   - use Mash to estimate pairwise genome distances from cleaned FASTA inputs
+   - convert Mash output to a square distance matrix
+   - use R ape::bionj to infer a tree
+
+   Main script:
+   - scripts/08_run_mash_bionj.sh
+
+   Outputs are under:
+   - results/phylo/mash_bionj/{condition}/rep_001/
+
+   Typical files:
+   - mash_distances.tsv
+   - distance_long.tsv
+   - distance_matrix.tsv
+   - inferred_tree.nwk
+   - run.log
+
+2. mafft_iqtree
+   Workflow:
+   - align all 16 cleaned tip genomes using MAFFT
+   - summarize alignment properties
+   - infer a maximum-likelihood tree using IQ-TREE
+
+   Main script:
+   - scripts/09_run_mafft_iqtree.sh
+
+   Outputs are under:
+   - results/phylo/mafft_iqtree/{condition}/rep_001/
+
+   Typical files:
+   - alignment.fa
+   - alignment_stats.tsv
+   - inferred_tree.nwk
+   - run.log
+   - iqtree/ alignment outputs
+
+3. mauve_iqtree
+   Workflow:
+   - split the all-tips FASTA into individual FASTA files
+   - align whole genomes with progressiveMauve
+   - convert XMFA output to a strict core alignment across all expected tips
+   - summarize core alignment properties
+   - infer a tree using IQ-TREE when the core alignment is usable
+
+   Main script:
+   - scripts/10_run_mauve_iqtree.sh
+
+   Outputs are under:
+   - results/phylo/mauve_iqtree/{condition}/rep_001/
+
+   Typical files when successful:
+   - split_fastas/
+   - mauve/alignment.xmfa
+   - mauve/guide_tree.nwk
+   - core_alignment.fa
+   - core_alignment_stats.tsv
+   - xmfa_blocks.tsv
+   - inferred_tree.nwk
+   - run.log
+
+   For high and very_high, this method was tested but did not produce valid final inferred trees in the scoring table. The strict core-alignment approach became unusable because many tips were represented only by gaps in the recovered core alignment. This is best treated as a method limitation at high divergence, not simply as an untested condition.
+
+
+TREE SCORING AND VALIDATION
+
+Inferred trees were scored against:
+
+- data/true_trees/true_tree_16tips.nwk
+
+Scoring script:
+
+- scripts/12_score_trees.py
+
+Main score outputs:
+
+- results/tree_scores/tree_scores.tsv
+- results/tree_scores/tree_validation.tsv
+- results/tree_scores/tree_splits.tsv
+- results/tree_scores/patristic_correlations.tsv
+
+The scorer checks:
+
+- whether each inferred tree exists
+- whether the inferred tree has the expected 16 tips
+- whether tips match the true tree
+- number of branches
+- negative branch lengths
+- matching, missing, and extra unrooted splits
+- Robinson-Foulds distance
+- normalized Robinson-Foulds distance
+- patristic distance correlation when branch lengths are usable
+
+
+TREE RECOVERY RESULTS FROM rep_001
+
+Robinson-Foulds scoring summary:
+
+method          condition    RF distance    normalized RF
+mash_bionj     very_low      0              0.000000
+mash_bionj     low           0              0.000000
+mash_bionj     normal        10             0.384615
+mash_bionj     high          16             0.615385
+mash_bionj     very_high     20             0.769231
+
+mafft_iqtree   very_low      0              0.000000
+mafft_iqtree   low           0              0.000000
+mafft_iqtree   normal        0              0.000000
+mafft_iqtree   high          4              0.153846
+mafft_iqtree   very_high     12             0.461538
+
+mauve_iqtree   very_low      0              0.000000
+mauve_iqtree   low           0              0.000000
+mauve_iqtree   normal        2              0.076923
+mauve_iqtree   high          missing tree
+mauve_iqtree   very_high     missing tree
+
+Interpretation of rep_001:
+
+- All successful methods recovered the true topology perfectly at very_low and low mutation rates.
+- MAFFT/IQ-TREE was strongest across the tested range, recovering the true tree perfectly through normal mutation and remaining relatively accurate at high mutation.
+- Mash/BioNJ degraded substantially from normal upward.
+- Mauve/IQ-TREE performed well through normal, but the strict core-alignment workflow did not produce usable trees for high or very_high.
+- Very_high mutation was the strongest stress test: both Mash/BioNJ and MAFFT/IQ-TREE had clear topological error, and Mauve/IQ-TREE did not yield a scored tree.
+
+Patristic correlation summary:
+
+method          condition    status                         correlation
+mash_bionj     very_low      ok                             0.965010
+mash_bionj     low           ok                             0.972010
+mash_bionj     normal        ok                             0.518204
+mash_bionj     high          skipped_negative_branch_lengths
+mash_bionj     very_high     ok                             0.851154
+
+mafft_iqtree   very_low      ok                             0.925401
+mafft_iqtree   low           ok                             0.970736
+mafft_iqtree   normal        ok                             0.152718
+mafft_iqtree   high          ok                             0.787141
+mafft_iqtree   very_high     ok                             0.821228
+
+mauve_iqtree   very_low      ok                             0.974924
+mauve_iqtree   low           ok                             0.984223
+mauve_iqtree   normal        ok                             0.935804
+
+Important note: patristic correlations should be interpreted more cautiously than RF distance in this first version. The true tree has equal simulated branch lengths, while inferred branch lengths come from method-specific distance/model estimates. Topological RF distance is the cleaner first-pass comparison.
+
+
+PLOTS THAT WERE GENERATED
+
+Plotting script:
+
+- scripts/13_plot_results.py
+
+Plot outputs:
+
+- results/plots/rf_by_condition_method.svg
+- results/plots/normalized_rf_by_condition_method.svg
+- results/plots/patristic_correlation_by_condition_method.svg
+- results/plots/genome_lengths_by_condition.svg
+- results/plots/score_plot_data.tsv
+
+The key plot for the current project question is:
+
+- results/plots/normalized_rf_by_condition_method.svg
+
+That plot summarizes how tree-recovery error changes across mutation-rate regimes and methods.
+
+
+PROJECT STRUCTURE OVERVIEW
+
+config/
+  base_params.in
+    Baseline Aevol parameter file.
+
+  mutation_grid.yaml
+    Defines the five mutation-rate multipliers.
+
+  run_config.yaml
+    Simulation settings such as ancestor generations, branch generations, tree size, and executable names.
+
+  generated_params/
+    Condition-specific Aevol parameter files.
+
+data/
+  true_trees/
+    Known 16-tip ground-truth Newick tree.
+
+  manifests/
+    Tree edge manifest, mutation parameter manifest, branch seed information, and related tabular metadata.
+
+  raw_final_fastas/
+    Frozen raw final Aevol FASTA outputs.
+
+  clean_fastas/
+    Cleaned analysis-ready FASTA inputs with standardized sequence names.
+
+results/
+  simulation_qc/
+    FASTA QC and genome length summaries.
+
+  software_versions/
+    Tool/version audit for the phylogeny environment.
+
+  phylo/
+    Method-specific phylogenetic inference outputs.
+
+  tree_scores/
+    Tree validation, RF scoring, split comparisons, and patristic correlations.
+
+  plots/
+    SVG plots and plotting input data.
+
+scripts/
+  00_make_tree.py
+    Generate the known balanced 16-tip species tree and edge manifest.
+
+  01_make_mutation_params.py
+    Generate mutation-rate-specific Aevol parameter files.
+
+  02_pre_evolve_ancestor.py / .sh / .ps1
+    Pre-evolve one baseline ancestor.
+
+  03_run_species_tree.py
+    Run the branch-by-branch Aevol simulations.
+
+  04_collect_final_fastas.py
+    Collect final tip genomes.
+
+  05_qc_fastas.py
+    QC final FASTA outputs.
+
+  06_check_phylo_tools.sh
+    Audit phylogeny software availability and versions.
+
+  07_prepare_phylo_inputs.py
+    Freeze/copy raw FASTA outputs and prepare cleaned FASTA inputs.
+
+  08_run_mash_bionj.sh
+    Run Mash distance estimation and BioNJ tree inference.
+
+  09_run_mafft_iqtree.sh
+    Run MAFFT alignment and IQ-TREE inference.
+
+  10_run_mauve_iqtree.sh
+    Run progressiveMauve, convert XMFA to core alignment, and run IQ-TREE when possible.
+
+  12_score_trees.py
+    Score inferred trees against the true tree.
+
+  13_plot_results.py
+    Generate summary plots.
+
+
+WHAT HAS BEEN DEMONSTRATED SO FAR
+
+The project has successfully demonstrated an end-to-end pilot workflow:
+
+1. Simulate five mutation-rate conditions from a common Aevol setup.
+2. Produce clean final FASTA files for 16 terminal species per condition.
+3. Verify FASTA integrity and genome length distributions.
+4. Run multiple phylogenetic inference strategies.
+5. Score inferred trees against a known simulated tree.
+6. Generate summary plots suitable for early results review.
+
+The main biological/computational pattern in rep_001 is that tree recovery is easy at very_low and low mutation rates, begins to vary across methods at normal and high mutation rates, and becomes substantially worse or method-limited at very_high mutation rates.
+
+
+NEXT LOGICAL STEPS
+
+1. Treat rep_001 as a successful pilot, not the final benchmark.
+2. Add rep_002 and rep_003 so method performance can be summarized across replicates.
+3. Keep the same true tree and shared design logic for comparability.
+4. Decide whether Mauve/IQ-TREE high-divergence failure should be reported as a method failure condition, relaxed with a less strict alignment extraction rule, or supplemented with an alternate whole-genome alignment strategy.
+5. After replicate expansion, summarize results by mean normalized RF distance, variation across replicates, and method failure rate.
+

@@ -1,0 +1,16 @@
+method	condition	replicate	tree	status	tip_count	missing_tips	extra_tips	branch_count	negative_branch_lengths	min_branch_length	max_branch_length
+mash_bionj	very_low	rep_001	results/phylo/mash_bionj/very_low/rep_001/inferred_tree.nwk	ok	16			29	0	0.004557780456	0.01578344405
+mash_bionj	low	rep_001	results/phylo/mash_bionj/low/rep_001/inferred_tree.nwk	ok	16			29	0	0.004603933077	0.03751801699
+mash_bionj	normal	rep_001	results/phylo/mash_bionj/normal/rep_001/inferred_tree.nwk	ok	16			29	0	0.001127735828	0.07835637778
+mash_bionj	high	rep_001	results/phylo/mash_bionj/high/rep_001/inferred_tree.nwk	ok_with_negative_branch_lengths	16			29	1	-0.02838174999	0.3328028321
+mash_bionj	very_high	rep_001	results/phylo/mash_bionj/very_high/rep_001/inferred_tree.nwk	ok	16			29	0	0.003142978996	0.7848762274
+mafft_iqtree	very_low	rep_001	results/phylo/mafft_iqtree/very_low/rep_001/inferred_tree.nwk	ok	16			29	0	0.0122138472	0.0611580478
+mafft_iqtree	low	rep_001	results/phylo/mafft_iqtree/low/rep_001/inferred_tree.nwk	ok	16			29	0	0.0422713228	0.1515481483
+mafft_iqtree	normal	rep_001	results/phylo/mafft_iqtree/normal/rep_001/inferred_tree.nwk	ok	16			29	0	0.0819784353	9.9956324452
+mafft_iqtree	high	rep_001	results/phylo/mafft_iqtree/high/rep_001/inferred_tree.nwk	ok	16			29	0	0.0536126603	0.8969923231
+mafft_iqtree	very_high	rep_001	results/phylo/mafft_iqtree/very_high/rep_001/inferred_tree.nwk	ok	16			29	0	0.0619199368	1.5580508141
+mauve_iqtree	very_low	rep_001	results/phylo/mauve_iqtree/very_low/rep_001/inferred_tree.nwk	ok	16			29	0	0.0198510284	0.0605969082
+mauve_iqtree	low	rep_001	results/phylo/mauve_iqtree/low/rep_001/inferred_tree.nwk	ok	16			29	0	0.0715998862	0.1999913879
+mauve_iqtree	normal	rep_001	results/phylo/mauve_iqtree/normal/rep_001/inferred_tree.nwk	ok	16			29	0	0.2016233624	0.717940341
+mauve_iqtree	high	rep_001	results/phylo/mauve_iqtree/high/rep_001/inferred_tree.nwk	missing_tree	0			0	0		
+mauve_iqtree	very_high	rep_001	results/phylo/mauve_iqtree/very_high/rep_001/inferred_tree.nwk	missing_tree	0			0	0		

@@ -1,0 +1,6 @@
+condition	replicate	records	min_length	max_length	mean_length	duplicate_sequences	invalid_records	fasta
+very_low	1	16	2869	3107	2969.19	0	0	data/final_fastas/very_low/rep_001/all_tips.fa
+low	1	16	2830	3113	2975.94	0	0	data/final_fastas/low/rep_001/all_tips.fa
+normal	1	16	2798	2963	2900.62	0	0	data/final_fastas/normal/rep_001/all_tips.fa
+high	1	16	1993	2585	2281.00	0	0	data/final_fastas/high/rep_001/all_tips.fa
+very_high	1	16	640	1044	813.81	0	0	data/final_fastas/very_high/rep_001/all_tips.fa

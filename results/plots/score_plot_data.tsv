@@ -1,0 +1,14 @@
+method	condition	rf_distance	normalized_rf	matching_splits
+mash_bionj	very_low	0	0.000000	13
+mash_bionj	low	0	0.000000	13
+mash_bionj	normal	10	0.384615	8
+mash_bionj	high	16	0.615385	5
+mash_bionj	very_high	20	0.769231	3
+mafft_iqtree	very_low	0	0.000000	13
+mafft_iqtree	low	0	0.000000	13
+mafft_iqtree	normal	0	0.000000	13
+mafft_iqtree	high	4	0.153846	11
+mafft_iqtree	very_high	12	0.461538	7
+mauve_iqtree	very_low	0	0.000000	13
+mauve_iqtree	low	0	0.000000	13
+mauve_iqtree	normal	2	0.076923	12

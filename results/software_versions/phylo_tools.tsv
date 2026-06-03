@@ -1,0 +1,18 @@
+group	tool	status	path	version	required
+runtime	python3	ok	/usr/bin/python3	Python 3.12.3	yes
+runtime	Rscript	ok	/usr/bin/Rscript	Rscript (R) version 4.3.3 (2024-02-29)	yes
+bioinformatics	seqkit	ok	/usr/bin/seqkit	seqkit v2.3.0	yes
+bioinformatics	mash	ok	/usr/bin/mash	2.3	yes
+bioinformatics	fastme	missing			yes
+bioinformatics	mafft	ok	/usr/bin/mafft	v7.505 (2022/Apr/10)	yes
+bioinformatics	iqtree	ok	/usr/bin/iqtree2	IQ-TREE multicore version 2.0.7 for Linux 64-bit built Apr 1 2024	yes
+whole_genome_alignment	progressiveMauve	ok	/usr/bin/progressiveMauve	progressiveMauve build date Apr 8 2024 at 15:01:27	no
+optional_distance	nucmer	ok	/usr/bin/nucmer	nucmer	no
+optional_distance	dnadiff	ok	/usr/bin/dnadiff	dnadiff	no
+python_package	biopython	ok	.venv_phylo/bin/python	1.87	yes
+python_package	pandas	ok	.venv_phylo/bin/python	3.0.3	yes
+python_package	ete3	ok	.venv_phylo/bin/python	3.1.3	no
+r_package	ape	ok	/usr/bin/Rscript	5.7.1	yes
+r_package	phangorn	ok	/usr/bin/Rscript	2.11.1	yes
+r_package	tidyverse	ok	/usr/bin/Rscript	2.0.0	yes
+r_package	dendextend	ok	/usr/bin/Rscript	1.17.1	no

@@ -1,0 +1,6 @@
+condition	replicate	status	message
+very_low	1	ok	
+low	1	ok	
+normal	1	ok	
+high	1	ok	
+very_high	1	ok	
